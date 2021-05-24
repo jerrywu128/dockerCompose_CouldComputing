@@ -1,0 +1,5 @@
+pymysql
+flask
+uwsgi
+cryptography
+flasgger

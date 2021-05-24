@@ -1,0 +1,88 @@
+version: "3.9"  # optional since v1.27.0
+services:
+ 
+  nginx:
+    build: nginx/
+    ports:
+       - "80:80"
+    depends_on:
+       - create_user
+       - user_list
+ 
+  rabbitmq_create:
+    image: rabbitmq  
+    ports:
+       - "5672:5672"
+       - "15672:15672"
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "5672" ]
+      interval: 5s
+      timeout: 15s
+      retries: 1
+
+ 
+  mysql_repli:
+    image: mysql
+    environment:
+        MYSQL_ROOT_USER: root
+        MYSQL_ROOT_PASSWORD: 123456
+        MYSQL_DATABASE: rabbitmqdata
+        MYSQL_PASSWORD: 123456    
+    ports:
+       - "3307:3306"
+    command: --init-file /data/application/init.sql
+    volumes:
+        - ./init.sql:/data/application/init.sql
+
+  mysql:
+    image: mysql
+    environment:
+       MYSQL_ROOT_USER: root
+       MYSQL_ROOT_PASSWORD: 123456
+       MYSQL_DATABASE: rabbitmqdata
+       MYSQL_PASSWORD: 123456
+    ports:
+       - "3306:3306"
+    command: --init-file /data/application/init.sql
+    volumes:
+        - ./init.sql:/data/application/init.sql 
+
+  user_list:
+    build: list_user/
+    restart: always
+    volumes: 
+       - ./list_user/:/app
+    environment:
+      - APP_NAME=list_user
+    expose:
+       - 5001
+    links:
+       - mysql_repli:db 
+    depends_on:
+       - mysql_repli
+
+  create_user:  
+    build: create_user/
+    restart: always
+    volumes: 
+       - ./create_user/:/app
+    environment:
+       - APP_NAME=create_user
+    expose:
+       - 5000
+    links:
+       - rabbitmq_create
+    depends_on:
+       - data_subscriber 
+ 
+  data_subscriber:
+    build: data_subscriber/
+    volumes: 
+      - ./data_subscriber/:/app
+    links:
+      - rabbitmq_create
+      - mysql:db
+    depends_on:
+      - rabbitmq_create
+      - mysql
+      
