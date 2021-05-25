@@ -17,7 +17,7 @@ logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
 @app.route('/create_user', methods=['POST'])
-@app.route('/')
+@app.route('/', methods=['POST'])
 @swag_from('apidocs/api_create_user.yml')
 def create_user():
 
