@@ -5,21 +5,20 @@ services:
     build: nginx/
     ports:
        - "80:80"
-    depends_on:
-       - create_user
-       - user_list
+    
+    networks:
+      internal_routes:
+        aliases:
+          - nginx
  
   rabbitmq_create:
     image: rabbitmq  
     ports:
        - "5672:5672"
-       - "15672:15672"
-    healthcheck:
-      test: [ "CMD", "nc", "-z", "localhost", "5672" ]
-      interval: 5s
-      timeout: 15s
-      retries: 1
-
+    networks:
+      internal_routes:
+        aliases:
+          - rabbitmq
  
   mysql_repli:
     image: mysql
@@ -33,7 +32,10 @@ services:
     command: --init-file /data/application/init.sql
     volumes:
         - ./init.sql:/data/application/init.sql
-
+    networks:
+      internal_routes:
+        aliases:
+          - mysql_repli
   mysql:
     image: mysql
     environment:
@@ -46,43 +48,42 @@ services:
     command: --init-file /data/application/init.sql
     volumes:
         - ./init.sql:/data/application/init.sql 
+    networks:
+      internal_routes:
+        aliases:
+          - mysql
 
   user_list:
     build: list_user/
-    restart: always
     volumes: 
        - ./list_user/:/app
-    environment:
-      - APP_NAME=list_user
     expose:
        - 5001
-    links:
-       - mysql_repli:db 
-    depends_on:
-       - mysql_repli
+    networks:
+      internal_routes:
+        aliases:
+          - user_list
 
   create_user:  
     build: create_user/
-    restart: always
     volumes: 
        - ./create_user/:/app
-    environment:
-       - APP_NAME=create_user
     expose:
        - 5000
-    links:
-       - rabbitmq_create
-    depends_on:
-       - data_subscriber 
- 
+    networks:
+      internal_routes:
+        aliases:
+          - create_user 
+  
   data_subscriber:
     build: data_subscriber/
     volumes: 
       - ./data_subscriber/:/app
-    links:
-      - rabbitmq_create
-      - mysql:db
+    restart: on-failure
     depends_on:
-      - rabbitmq_create
-      - mysql
-      
+      - "rabbitmq_create"
+    networks:
+      internal_routes:
+
+networks:
+  internal_routes:      

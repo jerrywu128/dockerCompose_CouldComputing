@@ -25,6 +25,7 @@ def get_hello_world():
     return token
 
 @app.route('/list_user', methods=['GET'])
+@app.route('/', methods=['GET'])
 @swag_from('apidocs/api_list_user.yml')
 def create_user():
 
@@ -37,9 +38,9 @@ def create_user():
     res = make_response(jsonify(res), 200)
     return res
 
-@app.route('/test2')
+@app.route('/')
 def index():
     return 'Hello, World Web App with Py Flask!'
 
 if __name__ =='__main__':
-    app.run()
+    app.run(host='0.0.0.0',port=5001)

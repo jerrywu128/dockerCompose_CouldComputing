@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, make_response, json,
 #import json
 #from flask import request
 #import publisher as pu
+import pika
 import logging
 import warnings
 
@@ -16,6 +17,7 @@ logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
 @app.route('/create_user', methods=['POST'])
+@app.route('/')
 @swag_from('apidocs/api_create_user.yml')
 def create_user():
 
@@ -32,7 +34,7 @@ def create_user():
     message['password'] = password
 
     # push username and password
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host='172.21.0.1', port=5672))
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq', port=5672))
     channel = connection.channel()
 
     channel.queue_declare(queue='task_queue', durable=True)
@@ -63,9 +65,10 @@ def get_hello_world():
     pu.pu(token)
     return token
 '''
-@app.route('/test1')
+@app.route('/')
 def index():
     return 'Hello, World Web App with Python Flask!'
 
 if __name__ =='__main__':
-    app.run()
+    app.run(host='0.0.0.0',port=5000)
+

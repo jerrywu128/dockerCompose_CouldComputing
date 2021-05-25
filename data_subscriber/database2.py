@@ -3,7 +3,7 @@ import pymysql
 # 資料庫設定
 def insert(token):
     db_settings = {
-        "host": "172.21.0.1",
+        "host": "mysql",
         "port": 3306,
         "user": "root",
         "password": "123456",
