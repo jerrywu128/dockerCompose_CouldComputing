@@ -1,12 +1,186 @@
-<!DOCTYPE html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html>
-    <head>
-        <meta charset="utf-8">
-        <title>app</title>
-    </head>
-    <body>
-        
-        <p>hi</p>
-        
-    </body>
+<head>
+    <title>snake</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="description" content=""/>
+    <meta name="keywords" content=""/>
+
+    <script type="text/javascript">
+        //① 繪製地圖
+        function Map() {
+            //私有成員(不會隨便發生變化)
+            var w = 800;
+            var h = 400;
+
+            //成員方法，繪製地圖
+            this.showmap = function () {
+                //建立div、設定css樣式、追加給body
+                var tu = document.createElement('div');
+
+                tu.style.width = w + "px";
+                tu.style.height = h + "px";
+                tu.style.backgroundImage = "url(./12.jpg)";
+
+                document.body.appendChild(tu);
+            }
+        }
+
+        //② 繪製食物
+        function Food() {
+            var len = 20;
+            //把食物(權值)座標宣告為公開的，以便在外部訪問
+            this.xFood = 0;
+            this.yFood = 0;
+            this.piece = null; //頁面上唯一的食物物件
+            //繪製
+            this.showfood = function () {
+                //建立div、設定css樣式、追加給body
+                if (this.piece === null) {
+                    this.piece = document.createElement('div');
+                    this.piece.style.width = this.piece.style.height = len + "px";
+                    this.piece.style.backgroundColor = "green";
+                    this.piece.style.position = "absolute";
+
+                    document.body.appendChild(this.piece);
+                }
+                //食物設定絕對定位(position/left/top)
+                //食物位置“隨機”擺放
+                //移動步進值：20px
+                //食物“權值”座標： X軸(0-39)  Y軸(0-19)  
+                //食物真實座標：權值座標 *  步進值
+                this.xFood = Math.floor(Math.random() * 40);  //0-39的隨機數
+                this.yFood = Math.floor(Math.random() * 20);  //0-19的隨機數
+
+                this.piece.style.left = this.xFood * len + "px";
+                this.piece.style.top = this.yFood * len + "px";
+
+            }
+        }
+
+        //③ 小蛇
+        function Snake() {
+            var len = 20;
+            this.redirect = "right"; //預設向右邊移動
+            //後期snakebody要變化，因此宣告為公開的(每個蛇節：[x座標，y座標，顏色，蛇節物件])
+            this.snakebody = [[0, 1, 'green', null], [1, 1, 'green', null], [2, 1, 'green', null], [3, 1, 'red', null]];
+            //a.繪製小蛇
+            this.showsnake = function () {
+                //遍歷小蛇的各個蛇節，並依次建立即可
+                for (var i = 0; i < this.snakebody.length; i++) {
+                    //this.snakebody[i]//代表每個蛇節
+                    //建立蛇節div
+                    if (this.snakebody[i][3] === null) {//判斷沒有建立對應的蛇節
+                        this.snakebody[i][3] = document.createElement('div');
+                        //設定css樣式(寬度、高度、顏色)
+                        this.snakebody[i][3].style.width = this.snakebody[i][3].style.height = len + "px";
+                        this.snakebody[i][3].style.backgroundColor = this.snakebody[i][2];
+                        //絕對定位及位置
+                        this.snakebody[i][3].style.position = "absolute";
+                        //把蛇節追加給body
+                        document.body.appendChild(this.snakebody[i][3]);
+                    }
+                    this.snakebody[i][3].style.left = this.snakebody[i][0] * len + "px";
+                    this.snakebody[i][3].style.top = this.snakebody[i][1] * len + "px";
+                }
+            }
+
+            //b.移動小蛇
+            this.movesnake = function () {
+                //非蛇頭蛇節(當前蛇節的新座標 是"下個蛇節"的舊座標)
+                for (var i = 0; i < this.snakebody.length - 1; i++) {
+                    this.snakebody[i][0] = this.snakebody[i + 1][0];
+                    this.snakebody[i][1] = this.snakebody[i + 1][1];
+                }
+                if (this.redirect == "right") {
+                    //蛇頭x座標遞增
+                    this.snakebody[this.snakebody.length - 1][0] += 1;
+                }
+                if (this.redirect == "left") {
+                    //蛇頭x座標遞減
+                    this.snakebody[this.snakebody.length - 1][0] -= 1;
+                }
+                if (this.redirect == "up") {
+                    //蛇頭y座標遞減
+                    this.snakebody[this.snakebody.length - 1][1] -= 1;
+                }
+                if (this.redirect == "down") {
+                    //蛇頭y座標遞增
+                    this.snakebody[this.snakebody.length - 1][1] += 1;
+                }
+
+                //判斷蛇頭碰到食物
+                //蛇頭座標
+                var xSnake = this.snakebody[this.snakebody.length - 1][0];
+                var ySnake = this.snakebody[this.snakebody.length - 1][1];
+                //食物座標food.xFood/food.yFood;
+                if (xSnake == food.xFood && ySnake == food.yFood) {
+                    //吃食物增加蛇節
+                    var newjie = [this.snakebody[0][0], this.snakebody[0][1], 'green', null];
+                    this.snakebody.unshift(newjie);//把newjie放到陣列的第一個位置去
+
+                    //原食物消失，重新生成一個食物
+                    food.showfood();
+                }
+
+                //控制小蛇在地圖範圍內移動
+                if (xSnake < 0 || xSnake > 39 || ySnake < 0 || ySnake > 19) {
+                    alert('game over');
+                    clearInterval(mytime);
+                    return false;
+                }
+                //吃到自己判斷(蛇頭座標與其他蛇節座標一致)
+                for (var k = 0; k < this.snakebody.length - 1; k++) {
+                    if (this.snakebody[k][0] == xSnake && this.snakebody[k][1] == ySnake) {
+                        alert('game over kill you by yourself');
+                        clearInterval(mytime);
+                        return false;
+                    }
+                }
+
+                //根據新座標繪製小蛇
+                this.showsnake();
+            }
+        }
+
+        window.onload = function () {
+            var map = new Map();
+            map.showmap();
+
+            food = new Food();//宣告為全域性的以便在該載入事件函式外部訪問
+            food.showfood();
+
+            snake = new Snake();//宣告為全域性的snake物件
+            snake.showsnake();
+
+            //移動小蛇
+            //setInterval(全域性變數，時間)
+            mytime = setInterval("snake.movesnake()", 200);
+
+            //設定鍵盤事件，控制器小蛇移動方向
+            document.onkeydown = function (evt) {
+                var num = evt.keyCode;//通過事件物件獲得數值碼，進而知道被觸發鍵子
+                if (num == 38) {
+                    snake.redirect = "up";
+                }
+                if (num == 40) {
+                    snake.redirect = "down";
+                }
+                if (num == 37) {
+                    snake.redirect = "left";
+                }
+                if (num == 39) {
+                    snake.redirect = "right";
+                }
+            }
+        }
+    </script>
+
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body></body>
 </html>
