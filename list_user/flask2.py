@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, jsonify, make_response, send_from_directory, redirect, url_for
 import json
-#from flask import request
-import database2 as db
+from flask_pymongo import PyMongo
 import logging
 import warnings
 
@@ -15,32 +14,18 @@ swagger = Swagger(app)
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
+mongo = PyMongo(app, uri="mongodb://rs2:27042/test")
 
-@app.route('/post_helloworld', methods=['POST'])
 
-def get_hello_world():
-    jsonobj = request.get_json(silent=True)
-    token = json.dumps(jsonobj['token']).replace("\"", "")
-    db.insert(token)
-    return token
 
 @app.route('/list_user', methods=['GET'])
 @app.route('/', methods=['GET'])
 @swag_from('apidocs/api_list_user.yml')
-def create_user():
-
-
-    # reture requests
-    res = dict()
-    res['username_1'] = 'Alice'
-    res['username_2'] = 'Bob'
-    res['username_3'] = 'Cindy'
-    res = make_response(jsonify(res), 200)
-    return res
-
-@app.route('/')
-def index():
-    return 'Hello, World Web App with Py Flask!'
+def list_user():
+    users = mongo.db.col.find({})
+    
+    return render_template('list.html',users=users)
+  
 
 if __name__ =='__main__':
     app.run(host='0.0.0.0',port=5001)

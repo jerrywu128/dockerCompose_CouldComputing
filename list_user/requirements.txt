@@ -3,3 +3,4 @@ flask
 uwsgi
 cryptography
 flasgger
+Flask-PyMongo

@@ -16,8 +16,10 @@ def insert(token):
     # 建立Cursor物件
         with conn.cursor() as cursor:
       #資料表相關操作
-            command = "INSERT INTO message(message)VALUES(%s)"
-            cursor.execute(command, token)
+            qmarks = ', '.join(['%s'] * len(token))
+            columns = ', '.join(token.keys())
+            command = "INSERT INTO customer(%s)VALUES(%s);" % (columns, qmarks)
+            cursor.execute(command, token.values())
             conn.commit()
     except Exception as ex:
         print(ex)

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Create user</title>
+    </head>
+    <body>
+        {% if mes == "" %}
+        <form method="post" action="/create_user">
+            <label for="username">username:</label>
+            <input type="text" id="username" name="username">
+            <label for="password">password:</label>
+            <input type="password" id="password" name="password">
+            <button type="submit">sign up</button>
+        </form>
+        {% else %}
+        <h1> {{mes}}</h1>
+        {% endif %}
+    </body>
+</html>

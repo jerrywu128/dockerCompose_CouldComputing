@@ -5,7 +5,6 @@ services:
     build: nginx/
     ports:
        - "80:80"
-    
     networks:
       internal_routes:
         aliases:
@@ -19,39 +18,50 @@ services:
       internal_routes:
         aliases:
           - rabbitmq
- 
-  mysql_repli:
-    image: mysql
-    environment:
-        MYSQL_ROOT_USER: root
-        MYSQL_ROOT_PASSWORD: 123456
-        MYSQL_DATABASE: rabbitmqdata
-        MYSQL_PASSWORD: 123456    
-    ports:
-       - "3307:3306"
-    command: --init-file /data/application/init.sql
+
+  mongodb_replicate_set_1:
+    container_name: rs1
+    image: mongo:4.2
+    command: mongod --replSet RS --port 27041 --dbpath /data/db --config /resource/mongod.yml
     volumes:
-        - ./init.sql:/data/application/init.sql
+      - ./mongodb/data/rs1:/data/db
+      - ./mongodb/mongod.yml:/resource/mongod.yml
+    ports:
+      - "27017:27041"
     networks:
       internal_routes:
         aliases:
-          - mysql_repli
-  mysql:
-    image: mysql
-    environment:
-       MYSQL_ROOT_USER: root
-       MYSQL_ROOT_PASSWORD: 123456
-       MYSQL_DATABASE: rabbitmqdata
-       MYSQL_PASSWORD: 123456
-    ports:
-       - "3306:3306"
-    command: --init-file /data/application/init.sql
+          - rs1
+
+  mongodb_replicate_set_2:
+    container_name: rs2
+    image: mongo:4.2
+    command: mongod --replSet RS --port 27042 --dbpath /data/db --config /resource/mongod.yml
     volumes:
-        - ./init.sql:/data/application/init.sql 
+      - ./mongodb/data/rs2:/data/db
+      - ./mongodb/mongod.yml:/resource/mongod.yml
+    ports:
+      - "27018:27042"
     networks:
       internal_routes:
         aliases:
-          - mysql
+          - rs2
+
+
+  mongodb_replicate_set_3:
+    container_name: rs3
+    image: mongo:4.2
+    command: mongod --replSet RS --port 27043 --dbpath /data/db --config /resource/mongod.yml
+    volumes:
+      - ./mongodb/data/rs3:/data/db
+      - ./mongodb/mongod.yml:/resource/mongod.yml
+    ports:
+      - "27019:27043"
+    networks:
+      internal_routes:
+        aliases:
+          - rs3
+
 
   user_list:
     build: list_user/
@@ -63,6 +73,18 @@ services:
       internal_routes:
         aliases:
           - user_list
+   
+  login:
+    build: login/
+    volumes: 
+       - ./login/:/app
+    expose:
+       - 5002
+    networks:
+      internal_routes:
+        aliases:
+          - login       
+
 
   create_user:  
     build: create_user/
