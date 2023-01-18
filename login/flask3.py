@@ -27,11 +27,11 @@ def login():
                epassword = base64.b64encode(password.encode('utf-8')).decode()
            
                if (name==username)and(pas==epassword):
-                   return render_template('app.html')
+                   return "sucess"
                else:
-                   return "<h1>login error check the name or password!</h1>"    
+                   return "fail"    
            else:
-               return "<h1>login error check the name or password!</h1>"
+               return "fail"
     else:
         return render_template('login.html')
   

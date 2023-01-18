@@ -1,10 +1,10 @@
-version: "3.9"  # optional since v1.27.0
+version: "3.3"  # optional since v1.27.0
 services:
  
   nginx:
     build: nginx/
     ports:
-       - "80:80"
+       - "81:80"
     networks:
       internal_routes:
         aliases:
@@ -27,7 +27,7 @@ services:
       - ./mongodb/data/rs1:/data/db
       - ./mongodb/mongod.yml:/resource/mongod.yml
     ports:
-      - "27017:27041"
+      - "27020:27041"
     networks:
       internal_routes:
         aliases:
